@@ -37,14 +37,7 @@ public class PlayerController : MonoBehaviour
         horizontalInput = Input.GetAxis("Horizontal"); // 左右 (A/D, 矢印左右)
         verticalInput = Input.GetAxis("Vertical");     // 上下 (W/S, 矢印上下)
 
-        // 地上でのジャンプ処理
-        if (Input.GetButtonDown("Jump") && !isInWater) 
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-        }
-        
-        // 【追加】水中でのジャンプボタンによる泳ぎ（ホップする動き）
-        // ※矢印キー「上」だけでなく、スペースキーでも泳ぎたい場合はここを使う
+        // 水中でのジャンプボタンによる泳ぎ（ホップする動き）
         if (Input.GetButtonDown("Jump") && isInWater)
         {
             rb.AddForce(Vector2.up * swimPower, ForceMode2D.Impulse);
