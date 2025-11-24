@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7993383199628262884}
   - component: {fileID: 4521744125468458547}
   - component: {fileID: 3759841084350983479}
+  - component: {fileID: -2519291401957943188}
   m_Layer: 0
   m_Name: IceSprite_big
   m_TagString: Untagged
@@ -100,3 +101,30 @@ MonoBehaviour:
   iceSprite_big: {fileID: 5861156295310824435}
   iceSprite_mid: {fileID: 8546072565002220809, guid: 1003aa1c393b54644b086b9d4518f9d2, type: 3}
   iceSprite_sml: {fileID: 4774885523319503465, guid: 10892b9df81a349bd8a242849b11c2f2, type: 3}
+--- !u!50 &-2519291401957943188
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5861156295310824435}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
