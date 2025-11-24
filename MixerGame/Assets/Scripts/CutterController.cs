@@ -65,19 +65,6 @@ public class CutterController : MonoBehaviour
 
         StartHorizontalMovement(delayTime);
     }
-
-    void OnDestroy()
-    {
-        if (_horizontalTween != null && _horizontalTween.IsActive())
-        {
-            _horizontalTween.Kill();
-        }
-        
-        if (_verticalTween != null && _verticalTween.IsActive())
-        {
-            _verticalTween.Kill();
-        }
-    }
     
     #endregion
 
