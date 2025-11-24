@@ -6,17 +6,18 @@ using DG.Tweening;
 public class CutterController : MonoBehaviour
 {
     #region Variables
+    //グローバル変数定義
     
-    [Header("Movement Settings")]
-    [SerializeField] private float _duration;
+    [Header("移動関連設定")]
+    [SerializeField] private float _duration; //移動時間
     
-    [SerializeField] private float _horizontalDistance;
+    [SerializeField] private float _horizontalDistance; //横移動距離
     
-    [SerializeField] [Range(0f, 1f)] private float _verticalRatio;
-    [SerializeField] private bool VerticalOnOff;
+    [SerializeField] [Range(0f, 1f)] private float _verticalRatio; //縦移動比率(横移動に対する)
+    [SerializeField] private bool VerticalOnOff; //縦移動するかどうか(線移動か楕円移動か)
 
 
-    [Header("Easing Settings")]
+    [Header("アニメーション関連設定")]
     [SerializeField] private Ease _easeType = Ease.InOutSine;
     
     private Vector3 _startPosition;
@@ -33,6 +34,8 @@ public class CutterController : MonoBehaviour
 
     private bool _isMovingRight;
     private bool _isMovingUp;
+
+    private const float _delayTime = 0.5f;
     
     #endregion
 
@@ -49,29 +52,29 @@ public class CutterController : MonoBehaviour
             _originalColor = _materialInstance.color;
         }
         
+        //初期状態を記憶
         _startPosition = transform.position;
         _previousX = transform.position.x;
         _previousY = transform.position.y;
+
         _verticalDistance = _horizontalDistance * _verticalRatio;
         _isMovingRight = false;
         _isMovingUp = false;
-
-        delayTime = _duration * 0.5f;
         
+        //アニメーション開始
         if (VerticalOnOff)
         {
             StartVerticalMovement();
         }
-
-        StartHorizontalMovement(delayTime);
+        StartHorizontalMovement(_duration * _delayTime);
     }
     
     #endregion
 
     #region Private Methods
-    
+
     #region Horizontal Movement
-    
+    //横移動関連
     void StartHorizontalMovement(float startDelay = 0f)
     {
         float targetX = _startPosition.x + _horizontalDistance;
@@ -85,6 +88,7 @@ public class CutterController : MonoBehaviour
             .OnUpdate(CheckHorizontalMovementDirection);
     }
     
+    //左右どちらに動いているか判定
     void CheckHorizontalMovementDirection()
     {
         float currentX = transform.position.x;
@@ -102,7 +106,7 @@ public class CutterController : MonoBehaviour
     #endregion
     
     #region Vertical Movement
-    
+    //縦移動関連
     void StartVerticalMovement()
     {
         float targetY = _startPosition.y + _verticalDistance;
@@ -114,7 +118,8 @@ public class CutterController : MonoBehaviour
             .OnStart(() => _previousY = transform.position.y)
             .OnUpdate(CheckVerticalMovementDirection);
     }
-    
+
+    //上下どちらに動いているか判定
     void CheckVerticalMovementDirection()
     {
         float currentY = transform.position.y;
@@ -128,6 +133,7 @@ public class CutterController : MonoBehaviour
     
     void UpdateCollisionAndTransparency()
     {
+        //右に動いているときは当たり判定をなくし、若干透明にする
         if (_isMovingRight)
         {
             if (_objectCollider != null)
