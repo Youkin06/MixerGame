@@ -11,22 +11,26 @@ public class CutterController : MonoBehaviour
     [SerializeField] private float _duration;
     
     [SerializeField] private float _horizontalDistance;
-
-     [SerializeField] [Range(0f, 1f)] private float verticalRatio;
+    
+    [SerializeField] [Range(0f, 1f)] private float _verticalRatio;
 
 
     [Header("Easing Settings")]
     [SerializeField] private Ease _easeType = Ease.InOutSine;
     
     private Vector3 _startPosition;
-    private Tween _movementTween;
+    private Tween _horizontalTween;
+    private Tween _verticalTween;
     private Collider _objectCollider;
     private Renderer _objectRenderer;
     private Material _materialInstance;
     private Color _originalColor;
     private float _previousX;
+    private float _previousY;
+    private float _verticalDistance;
 
     private bool _isMovingRight;
+    private bool _isMovingUp;
     
     #endregion
 
@@ -45,36 +49,48 @@ public class CutterController : MonoBehaviour
         
         _startPosition = transform.position;
         _previousX = transform.position.x;
+        _previousY = transform.position.y;
+        _verticalDistance = _horizontalDistance * _verticalRatio;
         _isMovingRight = false;
+        _isMovingUp = false;
         
-        StartHorizontalMovement();
+        StartVerticalMovement();
+        StartHorizontalMovement(_duration * 0.5f);
     }
 
     void OnDestroy()
     {
-        if (_movementTween != null && _movementTween.IsActive())
+        if (_horizontalTween != null && _horizontalTween.IsActive())
         {
-            _movementTween.Kill();
+            _horizontalTween.Kill();
+        }
+        
+        if (_verticalTween != null && _verticalTween.IsActive())
+        {
+            _verticalTween.Kill();
         }
     }
     
     #endregion
 
     #region Private Methods
-
-    void StartHorizontalMovement()
+    
+    #region Horizontal Movement
+    
+    void StartHorizontalMovement(float startDelay = 0f)
     {
-        Vector3 targetPosition = _startPosition + Vector3.right * _horizontalDistance;
+        float targetX = _startPosition.x + _horizontalDistance;
         
-        _movementTween = transform.DOMove(targetPosition, _duration)
+        _horizontalTween = transform.DOMoveX(targetX, _duration)
             .SetEase(_easeType)
             .SetLoops(-1, LoopType.Yoyo)
             .SetAutoKill(false)
-            .OnUpdate(CheckMovementDirection);
+            .SetDelay(startDelay)
+            .OnStart(() => _previousX = transform.position.x)
+            .OnUpdate(CheckHorizontalMovementDirection);
     }
     
-    //動く方向を判定
-    void CheckMovementDirection()
+    void CheckHorizontalMovementDirection()
     {
         float currentX = transform.position.x;
         bool wasMovingRight = _isMovingRight;
@@ -88,7 +104,33 @@ public class CutterController : MonoBehaviour
         _previousX = currentX;
     }
     
-    //右に進むときには当たり判定をなくし、若干透明にする
+    #endregion
+    
+    #region Vertical Movement
+    
+    void StartVerticalMovement()
+    {
+        float targetY = _startPosition.y + _verticalDistance;
+        
+        _verticalTween = transform.DOMoveY(targetY, _duration)
+            .SetEase(_easeType)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetAutoKill(false)
+            .OnStart(() => _previousY = transform.position.y)
+            .OnUpdate(CheckVerticalMovementDirection);
+    }
+    
+    void CheckVerticalMovementDirection()
+    {
+        float currentY = transform.position.y;
+        _isMovingUp = currentY > _previousY;
+        _previousY = currentY;
+    }
+    
+    #endregion
+    
+    #region Others
+    
     void UpdateCollisionAndTransparency()
     {
         if (_isMovingRight)
@@ -118,29 +160,8 @@ public class CutterController : MonoBehaviour
             }
         }
     }
-
-    private void RestartMovement()
-    {
-        if (_movementTween != null && _movementTween.IsActive())
-        {
-            _movementTween.Kill();
-        }
-        
-        if (_objectCollider != null)
-        {
-            _objectCollider.enabled = true;
-        }
-        
-        if (_materialInstance != null)
-        {
-            _materialInstance.color = _originalColor;
-        }
-        
-        _startPosition = transform.position;
-        _previousX = transform.position.x;
-        _isMovingRight = false;
-        StartHorizontalMovement();
-    }
+    
+    #endregion
     
     #endregion
 }

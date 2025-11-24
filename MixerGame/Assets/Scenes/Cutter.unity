@@ -242,7 +242,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _duration: 2
   _horizontalDistance: 6
-  verticalRatio: 0.125
+  _verticalRatio: 0.25
   _easeType: 4
 --- !u!1 &1820815726
 GameObject:
