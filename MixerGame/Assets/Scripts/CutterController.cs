@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
@@ -19,21 +17,17 @@ public class CutterController : MonoBehaviour
 
     [Header("アニメーション関連設定")]
     [SerializeField] private Ease _easeType = Ease.InOutSine;
+    [SerializeField] [Range(0f, 1f)] private float _startProgress = 0f; // 0 = 始まり, 1 = 終わり
     
     private Vector3 _startPosition;
-    private Tween _horizontalTween;
-    private Tween _verticalTween;
     private Collider _objectCollider;
     private Renderer _objectRenderer;
     private Material _materialInstance;
     private Color _originalColor;
     private float _previousX;
-    private float _previousY;
     private float _verticalDistance;
-    private float delayTime;
 
     private bool _isMovingRight;
-    private bool _isMovingUp;
 
     private const float _delayTime = 0.5f;
     
@@ -55,11 +49,9 @@ public class CutterController : MonoBehaviour
         //初期状態を記憶
         _startPosition = transform.position;
         _previousX = transform.position.x;
-        _previousY = transform.position.y;
 
         _verticalDistance = _horizontalDistance * _verticalRatio;
         _isMovingRight = false;
-        _isMovingUp = false;
         
         //アニメーション開始
         if (VerticalOnOff)
@@ -75,11 +67,11 @@ public class CutterController : MonoBehaviour
 
     #region Horizontal Movement
     //横移動関連
-    void StartHorizontalMovement(float startDelay = 0f)
+    void StartHorizontalMovement(float startDelay)
     {
         float targetX = _startPosition.x + _horizontalDistance;
         
-        _horizontalTween = transform.DOMoveX(targetX, _duration)
+        transform.DOMoveX(targetX, _duration)
             .SetEase(_easeType)
             .SetLoops(-1, LoopType.Yoyo)
             .SetAutoKill(false)
@@ -111,21 +103,12 @@ public class CutterController : MonoBehaviour
     {
         float targetY = _startPosition.y + _verticalDistance;
         
-        _verticalTween = transform.DOMoveY(targetY, _duration)
+        transform.DOMoveY(targetY, _duration)
             .SetEase(_easeType)
             .SetLoops(-1, LoopType.Yoyo)
-            .SetAutoKill(false)
-            .OnStart(() => _previousY = transform.position.y)
-            .OnUpdate(CheckVerticalMovementDirection);
+            .SetAutoKill(false);
     }
 
-    //上下どちらに動いているか判定
-    void CheckVerticalMovementDirection()
-    {
-        float currentY = transform.position.y;
-        _isMovingUp = currentY > _previousY;
-        _previousY = currentY;
-    }
     
     #endregion
     
