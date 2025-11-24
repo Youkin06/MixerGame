@@ -29,6 +29,7 @@ public class CutterController : MonoBehaviour
     private float _previousX;
     private float _previousY;
     private float _verticalDistance;
+    private float delayTime;
 
     private bool _isMovingRight;
     private bool _isMovingUp;
@@ -54,13 +55,15 @@ public class CutterController : MonoBehaviour
         _verticalDistance = _horizontalDistance * _verticalRatio;
         _isMovingRight = false;
         _isMovingUp = false;
+
+        delayTime = _duration * 0.5f;
         
         if (VerticalOnOff)
         {
             StartVerticalMovement();
         }
-        
-        StartHorizontalMovement(_duration * 0.5f);
+
+        StartHorizontalMovement(delayTime);
     }
 
     void OnDestroy()
