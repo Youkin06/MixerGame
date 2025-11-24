@@ -13,6 +13,7 @@ public class CutterController : MonoBehaviour
     [SerializeField] private float _horizontalDistance;
     
     [SerializeField] [Range(0f, 1f)] private float _verticalRatio;
+    [SerializeField] private bool VerticalOnOff;
 
 
     [Header("Easing Settings")]
@@ -54,7 +55,11 @@ public class CutterController : MonoBehaviour
         _isMovingRight = false;
         _isMovingUp = false;
         
-        StartVerticalMovement();
+        if (VerticalOnOff)
+        {
+            StartVerticalMovement();
+        }
+        
         StartHorizontalMovement(_duration * 0.5f);
     }
 

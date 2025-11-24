@@ -243,6 +243,7 @@ MonoBehaviour:
   _duration: 2
   _horizontalDistance: 6
   _verticalRatio: 0.25
+  VerticalOnOff: 1
   _easeType: 4
 --- !u!1 &1820815726
 GameObject:
