@@ -13,6 +13,8 @@ public class WaveController : MonoBehaviour
     private float[] vec;              // 各頂点の「上下方向の速度」を記録する配列（バネの動き用）
 
     // --- 設定パラメータ（インスペクターで調整可能） ---
+    [SerializeField] private float surfaceHeight = 1.0f; // ★追加: 水面の基準高さ（ここを1にする）
+
     [SerializeField] private float interval = 0.45f; // 頂点同士の間隔（狭いほど滑らかだが重くなる）
     [SerializeField] private float maxWave = 0.5f;   // 波の高さの最大制限
     [SerializeField] private float minWave = 0.05f;  // 波として処理する最小の高さ（これ以下なら計算終了）
@@ -20,6 +22,7 @@ public class WaveController : MonoBehaviour
     [SerializeField] private float waterPow = 0.05f; // 衝突時の衝撃係数（大きいほどドボンと沈む）
     [SerializeField] private float waveRate = 0.65f; // 波が隣へ伝わる際の減衰率（小さいほど波がすぐ消える）
     [SerializeField] private float waveTime = 0.08f; // 隣の頂点へ波が伝わるまでの遅延時間（秒）
+    [SerializeField] private float damping = 0.95f; // 減衰率を変数化
 
     private void Start()
     {
@@ -40,6 +43,9 @@ public class WaveController : MonoBehaviour
 
         // Splineに頂点を挿入していく処理
         Vector3 p = basePointPos;
+
+        p.y = surfaceHeight;
+
         for (int i = 2; i < n; i++) // Index 0,1は既存の点（底面）なので、2から開始
         {
             // 右方向へ interval ずつずらして位置を決定
@@ -76,12 +82,16 @@ public class WaveController : MonoBehaviour
         {
             Vector3 pos = spline.GetPosition(i);
 
+            // ★修正2: バネの力の計算を変更
+            // 「現在のY」と「基準の高さ(surfaceHeight)」の差分に対して力を働かせる
+            float displacement = pos.y - surfaceHeight;
+
             // --- 簡易的なバネの計算 (減衰振動) ---
             // フックの法則: 変位(pos.y)と逆向きに力を加える
-            vec[i - 2] -= k * pos.y;
+            vec[i - 2] -= k * displacement;//-=k*pos.y
             
-            // 減衰処理: 毎回速度を90%にして、徐々に揺れを止める（摩擦の表現）
-            vec[i - 2] *= 0.9f;
+            // 減衰処理: 毎回速度を減衰率に設定
+            vec[i - 2] *= damping;
             
             // 計算した速度を現在の位置に加算
             pos += vec[i - 2] * Vector3.up;
@@ -108,9 +118,19 @@ public class WaveController : MonoBehaviour
         Vector3 pos = spline.GetPosition(i);
         Vector3 dv = pos + waterPow * y_collisionVelocity * Vector3.up;
 
-        // 波の高さが最大値を超えないように制限（Clamp処理）
-        if (dv.y > maxWave) dv = new Vector3(pos.x, maxWave, 0);
-        else if (dv.y < -maxWave) dv = new Vector3(pos.x, -maxWave, 0);
+        // 【★ここを修正しました】 ----------------------------------
+        
+        // 1. まず「現在の波の高さ（変位）」を計算する
+        float currentWaveHeight = dv.y - surfaceHeight;
+
+        // 2. 変位が最大・最小を超えていないかチェックして制限する
+        if (currentWaveHeight > maxWave) currentWaveHeight = maxWave;
+        else if (currentWaveHeight < -maxWave) currentWaveHeight = -maxWave;
+
+        // 3. 制限した変位を使って、正しい絶対座標(dv)を作り直す
+        dv = new Vector3(pos.x, surfaceHeight + currentWaveHeight, 0);
+        
+        // --------------------------------------------------------
 
         // 計算した位置をセット
         spline.SetPosition(i, dv);
@@ -118,7 +138,9 @@ public class WaveController : MonoBehaviour
         // --- 波の伝播処理 ---
         int l = i; // 左へ広がるインデックス
         int r = i; // 右へ広がるインデックス
-        float y = dv.y; // 現在の波の高さ
+
+        // // y を「基準からの波の高さ(変位)」として扱う
+        float y = dv.y-surfaceHeight; // 現在の波の高さ
 
         // 最初の波が最大でなければ、少しランダム性を入れて減衰させる
         if (y * y != maxWave * maxWave) y *= waveRate * Random.Range(0.8f, 1.2f);
@@ -134,7 +156,8 @@ public class WaveController : MonoBehaviour
             if (l > 1) // インデックス1より大きい範囲で
             {
                 pos = spline.GetPosition(l);
-                spline.SetPosition(l, new Vector3(pos.x, y, 0));
+                //基準の高さ+波の高さにする
+                spline.SetPosition(l, new Vector3(pos.x, surfaceHeight+y, 0));
             }
 
             // 右隣へ伝播
@@ -142,7 +165,8 @@ public class WaveController : MonoBehaviour
             if (r < n) // インデックスnより小さい範囲で
             {
                 pos = spline.GetPosition(r);
-                spline.SetPosition(r, new Vector3(pos.x, y, 0));
+                //基準の高さ+波の高さにする
+                spline.SetPosition(r, new Vector3(pos.x, surfaceHeight+y, 0));
             }
 
             // 左右ともに端まで到達していたら終了
