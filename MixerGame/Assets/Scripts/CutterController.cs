@@ -8,22 +8,25 @@ public class CutterController : MonoBehaviour
     #region Variables
     
     [Header("Movement Settings")]
-    [SerializeField] private float duration = 0f;
+    [SerializeField] private float _duration;
     
-    [SerializeField] private float distance = 0f;
-    
-    [Header("Easing Settings")]
-    [SerializeField] private Ease easeType = Ease.InOutSine;
-    
-    private Vector3 startPosition;
-    private Tween movementTween;
-    private Collider objectCollider;
-    private Renderer objectRenderer;
-    private Material materialInstance;
-    private Color originalColor;
-    private float previousX;
+    [SerializeField] private float _horizontalDistance;
 
-    private bool isMovingLeft;
+     [SerializeField] [Range(0f, 1f)] private float verticalRatio;
+
+
+    [Header("Easing Settings")]
+    [SerializeField] private Ease _easeType = Ease.InOutSine;
+    
+    private Vector3 _startPosition;
+    private Tween _movementTween;
+    private Collider _objectCollider;
+    private Renderer _objectRenderer;
+    private Material _materialInstance;
+    private Color _originalColor;
+    private float _previousX;
+
+    private bool _isMovingRight;
     
     #endregion
 
@@ -31,27 +34,27 @@ public class CutterController : MonoBehaviour
 
     void Start()
     {
-        objectCollider = GetComponent<Collider>();
-        objectRenderer = GetComponent<Renderer>();
+        _objectCollider = GetComponent<Collider>();
+        _objectRenderer = GetComponent<Renderer>();
         
-        if (objectRenderer != null)
+        if (_objectRenderer != null)
         {
-            materialInstance = objectRenderer.material;
-            originalColor = materialInstance.color;
+            _materialInstance = _objectRenderer.material;
+            _originalColor = _materialInstance.color;
         }
         
-        startPosition = transform.position;
-        previousX = transform.position.x;
-        isMovingLeft = false;
+        _startPosition = transform.position;
+        _previousX = transform.position.x;
+        _isMovingRight = false;
         
-        StartMovement();
+        StartHorizontalMovement();
     }
 
     void OnDestroy()
     {
-        if (movementTween != null && movementTween.IsActive())
+        if (_movementTween != null && _movementTween.IsActive())
         {
-            movementTween.Kill();
+            _movementTween.Kill();
         }
     }
     
@@ -59,84 +62,84 @@ public class CutterController : MonoBehaviour
 
     #region Private Methods
 
-    void StartMovement()
+    void StartHorizontalMovement()
     {
-        Vector3 targetPosition = startPosition + Vector3.right * distance;
+        Vector3 targetPosition = _startPosition + Vector3.right * _horizontalDistance;
         
-        movementTween = transform.DOMove(targetPosition, duration)
-            .SetEase(easeType)
+        _movementTween = transform.DOMove(targetPosition, _duration)
+            .SetEase(_easeType)
             .SetLoops(-1, LoopType.Yoyo)
             .SetAutoKill(false)
             .OnUpdate(CheckMovementDirection);
     }
     
-    ＃動く方向を判定
+    //動く方向を判定
     void CheckMovementDirection()
     {
         float currentX = transform.position.x;
-        bool wasMovingLeft = isMovingLeft;
-        isMovingLeft = currentX < previousX;
+        bool wasMovingRight = _isMovingRight;
+        _isMovingRight = currentX > _previousX;
         
-        if (wasMovingLeft != isMovingLeft)
+        if (wasMovingRight != _isMovingRight)
         {
             UpdateCollisionAndTransparency();
         }
         
-        previousX = currentX;
+        _previousX = currentX;
     }
     
-    #左に進むときには当たり判定をなくし、若干透明にする
+    //右に進むときには当たり判定をなくし、若干透明にする
     void UpdateCollisionAndTransparency()
     {
-        if (isMovingLeft)
+        if (_isMovingRight)
         {
-            if (objectCollider != null)
+            if (_objectCollider != null)
             {
-                objectCollider.enabled = false;
+                _objectCollider.enabled = false;
             }
             
-            if (materialInstance != null)
+            if (_materialInstance != null)
             {
-                Color newColor = originalColor;
+                Color newColor = _originalColor;
                 newColor.a = 0.2f;
-                materialInstance.color = newColor;
+                _materialInstance.color = newColor;
             }
         }
         else
         {
-            if (objectCollider != null)
+            if (_objectCollider != null)
             {
-                objectCollider.enabled = true;
+                _objectCollider.enabled = true;
             }
             
-            if (materialInstance != null)
+            if (_materialInstance != null)
             {
-                materialInstance.color = originalColor;
+                _materialInstance.color = _originalColor;
             }
         }
     }
 
     private void RestartMovement()
     {
-        if (movementTween != null && movementTween.IsActive())
+        if (_movementTween != null && _movementTween.IsActive())
         {
-            movementTween.Kill();
+            _movementTween.Kill();
         }
         
-        if (objectCollider != null)
+        if (_objectCollider != null)
         {
-            objectCollider.enabled = true;
+            _objectCollider.enabled = true;
         }
         
-        if (materialInstance != null)
+        if (_materialInstance != null)
         {
-            materialInstance.color = originalColor;
+            _materialInstance.color = _originalColor;
         }
         
-        startPosition = transform.position;
-        previousX = transform.position.x;
-        isMovingLeft = false;
-        StartMovement();
+        _startPosition = transform.position;
+        _previousX = transform.position.x;
+        _isMovingRight = false;
+        StartHorizontalMovement();
     }
     
     #endregion
