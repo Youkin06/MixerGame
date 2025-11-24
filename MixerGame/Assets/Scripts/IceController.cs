@@ -23,7 +23,7 @@ public class IceController : MonoBehaviour
 
     public void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject.tag == "blade")
+        if(collision.gameObject.tag == "Blade")
         {
             float3 position = this.transform.position;
             if(this.transform.localScale.x >= 1)
