@@ -30,7 +30,7 @@ public class CutterController : MonoBehaviour
     private Tween _verticalTween;
 
     private bool _isMovingRight;
-    private float _phaseOffset = 0.5f; // 縦横のズレる時間 _durationの1/4
+    private float _phaseOffset; // 縦横のズレる時間 _durationの1/4
     
     #endregion
 
@@ -46,6 +46,8 @@ public class CutterController : MonoBehaviour
             _materialInstance = _objectRenderer.material;
             _originalColor = _materialInstance.color;
         }
+
+        _phaseOffset =_duration/4; // 33行目参照
         
         //初期状態を記憶
         _startPosition = transform.position;
@@ -165,7 +167,7 @@ public class CutterController : MonoBehaviour
             if (_materialInstance != null)
             {
                 Color newColor = _originalColor;
-                newColor.a = 0.2f;
+                newColor.a = 0.3f;
                 _materialInstance.color = newColor;
             }
         }
