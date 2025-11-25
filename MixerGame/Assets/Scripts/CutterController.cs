@@ -7,17 +7,17 @@ public class CutterController : MonoBehaviour
     //グローバル変数定義
     
     [Header("移動関連設定")]
-    [SerializeField] private float _duration; //移動時間
+    [SerializeField] private float _duration = 2f; //移動時間
     
-    [SerializeField] private float _horizontalDistance; //横移動距離
+    [SerializeField] private float _horizontalDistance = 6f; //横移動距離
     
-    [SerializeField] [Range(0f, 1f)] private float _verticalRatio; //縦移動比率(横移動に対する)
-    [SerializeField] private bool VerticalOnOff; //縦移動するかどうか(線移動か楕円移動か)
+    [SerializeField] [Range(0f, 2f)] private float _verticalRatio = 0.25f; //縦移動比率(横移動に対する)
+    [SerializeField] private bool VerticalOnOff = true; //縦移動するかどうか(線移動か楕円移動か)
 
 
     [Header("アニメーション関連設定")]
     [SerializeField] private Ease _easeType = Ease.InOutSine;
-    [SerializeField] [Range(0f, 1f)] private float _startProgress = 0f; // 0 = 始まり, 1 = 終わり
+    [SerializeField] [Range(0f, 1f)] private float _startProgress; // 0 = 始まり, 1 = 終わり
     
     private Vector3 _startPosition;
     private Collider _objectCollider;
@@ -26,10 +26,11 @@ public class CutterController : MonoBehaviour
     private Color _originalColor;
     private float _previousX;
     private float _verticalDistance;
+    private Tween _horizontalTween;
+    private Tween _verticalTween;
 
     private bool _isMovingRight;
-
-    private const float _delayTime = 0.5f;
+    private float _phaseOffset = 0.5f; // 縦横のズレる時間 _durationの1/4
     
     #endregion
 
@@ -49,16 +50,28 @@ public class CutterController : MonoBehaviour
         //初期状態を記憶
         _startPosition = transform.position;
         _previousX = transform.position.x;
-
         _verticalDistance = _horizontalDistance * _verticalRatio;
         _isMovingRight = false;
         
         //アニメーション開始
+        StartHorizontalMovement();
         if (VerticalOnOff)
         {
             StartVerticalMovement();
         }
-        StartHorizontalMovement(_duration * _delayTime);
+    }
+
+    void OnDestroy()
+    {
+        if (_horizontalTween != null && _horizontalTween.IsActive())
+        {
+            _horizontalTween.Kill();
+        }
+        
+        if (_verticalTween != null && _verticalTween.IsActive())
+        {
+            _verticalTween.Kill();
+        }
     }
     
     #endregion
@@ -67,17 +80,18 @@ public class CutterController : MonoBehaviour
 
     #region Horizontal Movement
     //横移動関連
-    void StartHorizontalMovement(float startDelay)
+    void StartHorizontalMovement()
     {
         float targetX = _startPosition.x + _horizontalDistance;
         
-        transform.DOMoveX(targetX, _duration)
+        _horizontalTween = transform.DOMoveX(targetX, _duration)
             .SetEase(_easeType)
             .SetLoops(-1, LoopType.Yoyo)
             .SetAutoKill(false)
-            .SetDelay(startDelay)
             .OnStart(() => _previousX = transform.position.x)
             .OnUpdate(CheckHorizontalMovementDirection);
+
+        ApplyStartProgress(_horizontalTween, _phaseOffset);        
     }
     
     //左右どちらに動いているか判定
@@ -101,18 +115,42 @@ public class CutterController : MonoBehaviour
     //縦移動関連
     void StartVerticalMovement()
     {
-        float targetY = _startPosition.y + _verticalDistance;
-        
-        transform.DOMoveY(targetY, _duration)
+        float targetY = _startPosition.y - _verticalDistance;
+
+        _verticalTween = transform.DOMoveY(targetY, _duration)
             .SetEase(_easeType)
             .SetLoops(-1, LoopType.Yoyo)
             .SetAutoKill(false);
+
+        ApplyStartProgress(_verticalTween, 0f);
     }
 
     
     #endregion
     
     #region Others
+    
+    void ApplyStartProgress(Tween tween, float baseProgress)
+    {
+        if (tween == null)
+        {
+            return;
+        }
+        
+        float clampedProgress = Mathf.Clamp01(_startProgress);
+        float normalizedBase = Mathf.Repeat(baseProgress, _duration);
+        float targetProgress = Mathf.Repeat(normalizedBase + clampedProgress, _duration);
+
+        if (Mathf.Approximately(targetProgress, 0f))
+        {
+            return;
+        }
+        
+        DOTween.To(() => 0f, _ => { }, _duration, 0f).OnComplete(() =>
+        {
+            tween.Goto(tween.Duration(false) * targetProgress, true);
+        });
+    }
     
     void UpdateCollisionAndTransparency()
     {
