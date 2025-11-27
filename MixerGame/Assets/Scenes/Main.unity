@@ -410,10 +410,6 @@ PrefabInstance:
       value: juice
       objectReference: {fileID: 0}
     - target: {fileID: 8498852262673854438, guid: 104d7452b6cfc492689de5858114a0be, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 9.57
-      objectReference: {fileID: 0}
-    - target: {fileID: 8498852262673854438, guid: 104d7452b6cfc492689de5858114a0be, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
